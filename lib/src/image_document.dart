@@ -18,6 +18,20 @@ class _SelectionStackElement {
   Mask mask;
   CanvasElement highlight;
   int refColor;
+  Tool tool;
+
+  void removeHighlight() {
+    if (highlight == null) return;
+    highlight.remove();
+    tool.elementRemoved(highlight);
+  }
+
+  void execute(ImageDocument doc) {
+    mask.imageData = new PixelData.fromCanvas(doc.backingCanvas);
+    mask.paint(color: refColor);
+    mask.imageData.setCanvasContents(doc.backingCanvas);
+    removeHighlight();
+  }
 }
 
 class ImageDocumentView {
@@ -37,18 +51,13 @@ class ImageDocumentView {
     _tools = [new Tool("eraser", (Tool tool, bool doSelect) {
       Console console = window.console;
       if(doSelect) {
-        var createAxis = (orientation) {
+        List<SpanElement> axis = ["vertical", "horizontal"].map((String orientation) {
           SpanElement axis = new SpanElement();
           axis.classes.add("${orientation}Ants");
           axis.classes.add("${orientation}Axis");
           axis.classes.add("hideCursor");
           return axis;
-        };
-
-        List<SpanElement> axis = [
-          createAxis("vertical"),
-          createAxis("horizontal")
-        ];
+        }).toList();
 
         axis.forEach((a) {
           _canvasParent.append(a);
@@ -56,11 +65,9 @@ class ImageDocumentView {
         });
 
         CanvasElement canvas = doc.backingCanvas;
-        var canvasX = (MouseEvent event) => event.offset.x;
-        var canvasY = (MouseEvent event) => event.offset.y;
         tool.addListener(canvas.onMouseMove, (MouseEvent event) {
-          num x = canvasX(event);
-          num y = canvasY(event);
+          num x = event.offset.x;
+          num y = event.offset.y;
           axis[0].style.left = "${x}px";
           axis[1].style.top = "${y}px";
           if (x < 0 || x >= canvas.offsetWidth || y < 0 || y >= canvas.offsetHeight) {
@@ -74,40 +81,21 @@ class ImageDocumentView {
         canvas.tabIndex = 0;
         List<_SelectionStackElement> selectionStack = [];
 
-        var removeHighlight = (_SelectionStackElement selection) {
-          if (selection.highlight == null) return;
-          Element p = selection.highlight.parent;
-          if (p != null) selection.highlight.remove();
-          tool.elementRemoved(selection.highlight);
-        };
-
-        var execute = (bool commit) {
-          if (selectionStack.isNotEmpty) {
-            var selection = selectionStack.removeLast();
-            if (commit) {
-              selection.mask.imageData = new PixelData.fromCanvas(doc.backingCanvas);
-              selection.mask.paint(color: selection.refColor);
-              selection.mask.imageData.setCanvasContents(doc.backingCanvas);
-            }
-            removeHighlight(selection);
-          }
-        };
-
         tool.addListener(canvas.onKeyDown, (KeyboardEvent event) {
           if (event.which == 13) {
             event.preventDefault();
             event.stopPropagation();
-            execute(true);
+            if (selectionStack.isNotEmpty) selectionStack.removeLast().execute(doc);
           } else if (event.which == 8 || event.which == 46) {
             event.preventDefault();
             event.stopPropagation();
-            execute(false);
+            if (selectionStack.isNotEmpty) selectionStack.removeLast().removeHighlight();
           }
         });
         tool.addListener(canvas.onClick, (MouseEvent event) {
           canvas.focus();
-          num x = canvasX(event);
-          num y = canvasY(event);
+          num x = event.offset.x;
+          num y = event.offset.y;
           _SelectionStackElement current;
           if (selectionStack.isNotEmpty) {
             current = selectionStack.first;
@@ -116,7 +104,8 @@ class ImageDocumentView {
             current = new _SelectionStackElement()
               ..mask = mask
               ..highlight = null
-              ..refColor = mask.referenceColor;
+              ..refColor = mask.referenceColor
+              ..tool = tool;
             selectionStack.add(current);
           }
 
@@ -125,7 +114,7 @@ class ImageDocumentView {
           console.log("Testing for color: ${refColor.toRadixString(16).padLeft(8, '0')}");
           current.mask.fill(x, y, pixelTest: (pixel) => pixel != refColor);
 
-          removeHighlight(current);
+          current.removeHighlight();
 
           CanvasElement fillHighlight = current.mask.createHighlightElement("highlightCanvas");
           _canvasParent.append(fillHighlight);
