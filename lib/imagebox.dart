@@ -56,16 +56,22 @@ class ImageBoxApp {
 
   void handleBlob(Blob blob) {
     Pipeline pipeline = new Pipeline(createProcess);
-    ImageDocument.load(blob, pipeline).then((ImageDocument doc) async {
-      ImageDocumentView docView = new ImageDocumentView(viewTemplate, doc);
-      Element insertionPoint = document.getElementById("insertionPoint")?.nextNode;
-      docView.appendTo(document.body, insertionPoint);
-    });
+    ImageDocument.load(blob, pipeline).then(handleImageDocument);
   }
 
-  PipelineProcess createProcess(
-          CanvasRenderingContext2D context, PixelData source) =>
-      new CropProcess(context, source)
+  void handlePixelData(PixelData data, {String filename}) {
+    Pipeline pipeline = new Pipeline(createProcess);
+    handleImageDocument(new ImageDocument(pixels: data, pipeline: pipeline, filename: filename));
+  }
+
+  void handleImageDocument(ImageDocument doc) {
+    ImageDocumentView docView = new ImageDocumentView(this, viewTemplate, doc);
+    Element insertionPoint = document.getElementById("insertionPoint")?.nextNode;
+    docView.appendTo(document.body, insertionPoint);
+  }
+
+  PipelineProcess createProcess(PixelData source) =>
+      new CropProcess(source)
         ..doCrop = !disableCrop.checked
         ..transparentCartoon = transparentCartoon.checked
         ..gradientCrop = gradientCrop.checked

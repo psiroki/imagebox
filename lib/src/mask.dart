@@ -32,7 +32,7 @@ class MaskBuffer {
       throw new MaskBufferError("You can only combine masks of the same size");
   }
 
-  void set(int x, int y, int alpha, int anX, int anY) {
+  void setValues(int x, int y, int alpha, int anX, int anY) {
     if (x >= 0 && x < width && y >= 0 && y < height) setAtOffset(y * pitch + x, alpha, anX, anY);
   }
 
@@ -111,12 +111,16 @@ class Mask {
   set imageData(PixelData data) {
     _imageData = data;
     imageDataView = data.data.buffer.asUint32List();
-    if (maskBuffer == null || maskBuffer.width != data.width || maskBuffer.height != data.height)
+    if (maskBuffer == null || maskBuffer.width != data.width || maskBuffer.height != data.height) {
       maskBuffer = new MaskBuffer(data.width, data.height);
-    rectangle = [-1, -1, -1, -1];
+      rectangle = null;
+    }
+    rectangle ??= [-1, -1, -1, -1];
   }
 
   PixelData get imageData => _imageData;
+
+  int get referenceColor => imageDataView[0];
 
   ColorMatcher _handlePixelTest(int pixelTest, [int offsetOpt]) {
     int sourcePixel = pixelTest == null ? imageDataView[offsetOpt] : pixelTest;
@@ -283,8 +287,8 @@ class Mask {
     int top = rectangle[1];
     int right = rectangle[2];
     int bottom = rectangle[3];
-    int pitch = imageData.pitch;
-    int base = top * imageData.pitch;
+    int pitch = maskBuffer.pitch;
+    int base = top * pitch;
     for (int y = top; y < bottom; ++y, base += pitch) {
       for (int x = left; x < right; ++x) {
         int i = base + x;

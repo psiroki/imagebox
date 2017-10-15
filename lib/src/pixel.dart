@@ -9,14 +9,29 @@ class PixelPosition {
 }
 
 abstract class PixelData {
+  factory PixelData.fromCanvas(CanvasElement canvas) = WrappedImageData.fromCanvas;
+
+  PixelData();
+
   int get width;
   int get height;
   int get pitch => width*4;
   Uint8ClampedList get data;
   ImageData createImageData(CanvasRenderingContext2D context);
+
+  void setCanvasContents(CanvasElement canvas) {
+    CanvasRenderingContext2D context = canvas.getContext("2d");
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.putImageData(createImageData(context), 0, 0);
+  }
 }
 
 class WrappedImageData extends PixelData {
+  factory WrappedImageData.fromCanvas(CanvasElement canvas) {
+    CanvasRenderingContext2D context = canvas.getContext("2d");
+    return new WrappedImageData(context.getImageData(0, 0, canvas.width, canvas.height));
+  }
+
   WrappedImageData(this.imageData);
 
   int get width => imageData.width;
@@ -33,6 +48,11 @@ class PixelDataBuffer extends PixelData {
     this.width = width,
     this.height = height,
     this.data = new Uint8ClampedList(width*height*4);
+
+  PixelDataBuffer.copy(PixelData other):
+    this.width = other.width,
+    this.height = other.height,
+    this.data = new Uint8ClampedList(other.data.lengthInBytes)..setAll(0, other.data);
 
   final int width;
   final int height;

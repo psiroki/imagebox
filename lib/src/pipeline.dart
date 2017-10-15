@@ -5,34 +5,34 @@ import "dart:math" as math;
 import "pixel.dart";
 import "mask.dart";
 
-typedef PipelineProcess PipelineProcessFactory(CanvasRenderingContext2D context, PixelData source);
+typedef PipelineProcess PipelineProcessFactory(PixelData source);
 
 class Pipeline {
   Pipeline(this.createProcess);
 
-  PixelData process(CanvasRenderingContext2D context, [ImageData source]) {
-    if (source == null) {
+  PixelData process({CanvasRenderingContext2D context, ImageData source, PixelData pixels}) {
+    if (source == null && pixels == null) {
       CanvasElement canvas = context.canvas;
       source = context.getImageData(0, 0, canvas.width, canvas.height);
     }
-    return createProcess(context, new WrappedImageData(source)).execute();
+    if (pixels == null) pixels = new WrappedImageData(source);
+    return createProcess(pixels).execute();
   }
 
   PipelineProcessFactory createProcess;
 }
 
 abstract class PipelineProcess {
-  PipelineProcess(this.context, this.source);
+  PipelineProcess(this.source);
 
   PixelData execute();
 
-  final CanvasRenderingContext2D context;
   final PixelData source;
 }
 
 class CropProcess extends PipelineProcess {
-  CropProcess(CanvasRenderingContext2D context, PixelData source)
-      : super(context, source);
+  CropProcess(PixelData source)
+      : super(source);
 
   bool doCrop = true;
   bool transparentCartoon = false;
