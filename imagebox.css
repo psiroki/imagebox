@@ -1,0 +1,369 @@
+html, body {
+	min-height: 100vh;
+	margin: 0;
+	box-sizing: border-box;
+	font-size: 11px;
+	font-family: 'San Francisco', 'Helvetica Neue', Tahoma, sans-serif;
+}
+
+#insertionPoint {
+	height: 56px;
+}
+
+.checkerBackground, .canvasParent {
+	background-color: #fff;
+	background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee),
+		linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee);
+	background-size: 16px 16px;
+	background-position: 0 0, 8px 8px;
+}
+
+.settingsPanel {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	width: 100vw;
+	height: 48px;
+	display: flex;
+	align-items: center;
+	box-shadow: 0px -8px 8px 8px rgba(0,0,0,0.5);
+	z-index: 1;
+	background-color: #fff;
+}
+
+.settingsPanel .client {
+	line-height: 20px;
+}
+
+input[type=number] {
+	width: 36px;
+	text-align: right;
+}
+
+body {
+	padding: 0px 12px;
+}
+
+.view .card {
+	position: relative;
+	display: inline-block;
+	border: 1px solid #eee;
+	border-radius: 5px;
+	padding: 8px;
+	box-shadow: 0px 3px 5px rgba(0,0,0,0.25);
+	margin: 8px 0px;
+	background: #fff;
+}
+
+.canvasHolder {
+	float: left;
+	position: relative;
+	overflow: hidden;
+	padding: 3px;
+	z-index: 0;
+	margin-bottom: 4px;
+	line-height: 1px;
+}
+
+.canvasHolder > * {
+	vertical-align: top;
+}
+
+.canvasParent {
+	position: relative;
+	display: inline-block;
+}
+
+.canvasParent .highlightCanvas {
+	pointer-events: none;
+	position: absolute;
+	left: 0;
+	top: 0;
+}
+
+.card .canvasHolder:hover .horizontalAxis,
+.card .canvasHolder:hover .verticalAxis {
+	display: block;
+}
+
+.horizontalAxis, .verticalAxis {
+	position: absolute;
+	pointer-events: none;
+	z-index: 1;
+	display: none;
+}
+
+.horizontalAxis {
+	left: 0px;
+	right: 0px;
+}
+
+.verticalAxis {
+	top: 0px;
+	bottom: 0px;
+}
+
+.horizontalAnts {
+	background: linear-gradient(to right, #888, #888 33%, rgba(136, 136, 136, 0) 33%, rgba(136, 136, 136, 0) 66%,
+		transparent 66%, transparent) 0px 0px repeat;
+	background-size: 16px 1px;
+	animation: diagonalMarch 1s infinite linear;
+	height: 1px;
+}
+
+.verticalAnts {
+	background: linear-gradient(to bottom, #888, #888 33%, rgba(136, 136, 136, 0) 33%, rgba(136, 136, 136, 0) 66%,
+		transparent 66%, transparent) 0px 0px repeat;
+	background-size: 1px 16px;
+	animation: diagonalMarch 1s infinite linear;
+	width: 1px;
+}
+
+.card .canvasHolder .canvasFrame {
+	pointer-events: none;
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	right: 2px;
+	bottom: 2px;
+	z-index: -1;
+	box-sizing: border-box;
+	background: linear-gradient(to right, #888, #888 50%, rgba(136, 136, 136, 0) 50%, rgba(136, 136, 136, 0)) 0px 0% repeat-x,
+		linear-gradient(to left, #888, #888 50%, rgba(136, 136, 136, 0) 50%, rgba(136, 136, 136, 0)) 0px 100% repeat-x,
+		linear-gradient(to top, #888, #888 50%, rgba(136, 136, 136, 0) 50%, rgba(136, 136, 136, 0)) 0% 0px repeat-y,
+		linear-gradient(to bottom, #888, #888 50%, rgba(136, 136, 136, 0) 50%, rgba(136, 136, 136, 0)) 100% 0px repeat-y;
+  background-size: 16px 4px, 16px 4px, 4px 16px, 4px 16px;
+	border-radius: 2px;
+}
+
+.card .canvasHolder:hover .canvasParent {
+	animation: diagonalMarch 1s infinite linear;
+}
+
+.card .canvasHolder:hover .canvasFrame, .card .canvasHolder:active .canvasFrame {
+	animation: march 1s infinite linear;
+}
+
+@keyframes march {
+	from { background-position: 0px 0%, 0px 100%, 0% 0px, 100% 0px; }
+	to { background-position: 16px 0%, -16px 100%, 0% -16px, 100% 16px; }
+}
+
+@keyframes diagonalMarch {
+	from { background-position: 0px 0px, 8px 8px; }
+	to { background-position: 16px 16px, 24px 24px; }
+}
+
+.hideCursor {
+	cursor: none;
+}
+
+.dragOver {
+	box-shadow: 0px 0px 32px #888 inset;
+	background: url(dropText.jpg) 50% 32% no-repeat;
+	background-size: cover;
+}
+
+.busy {
+	box-shadow: 0px 0px 32px red inset;
+}
+
+.snackBar {
+	overflow: hidden;
+	clear: both;
+	padding: 5px 0;
+}
+
+.snackBar > * {
+	float: left;
+	margin-right: 4px;
+}
+
+.snackBar > .section {
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	margin: -5px 0;
+	padding: 4px 6px;
+	box-shadow: inset 0px 1px 3px rgba(0,0,0,0.05);
+}
+
+.snackBar > .section > * {
+	float: left;
+	margin-right: 4px;
+}
+
+.snackBar output {
+	line-height: 18px;
+}
+
+.snackBar > .closeButton {
+	float: right;
+	margin-right: 0px;
+	margin-left: 4px;
+}
+
+.verticalPanel {
+	display: inline-block;
+	vertical-align: top;
+	margin-left: 8px;
+}
+
+.verticalPanel > span, .verticalPanel > label {
+	display: block;
+}
+
+.combinedValuePanel > .rangeBlock > input {
+	width: 100%;
+}
+
+button.highlight {
+	box-shadow: 0px 1px 1px rgba(0,0,0,0.25),
+		0px 0px 3px 1px rgba(0, 64, 255, 1) inset;
+}
+
+button.primary {
+	box-shadow: 0px 1px 1px rgba(0,0,0,0.25),
+		0px 0px 3px 1px rgba(0, 192, 0, 1) inset;
+}
+
+button {
+	border: 1px solid #ccc;
+	box-shadow: 0px 1px 1px rgba(0,0,0,0.25);
+	background: #fff;
+	border-radius: 7px;
+	line-height: 15px;
+	color: black;
+	vertical-align: middle;
+	font-size: 11px;
+	font-family: 'San Francisco', 'Helvetica Neue', Tahoma, sans-serif;
+}
+
+button.left {
+	border-radius: 7px 0px 0px 7px;
+	margin-right: -1px;
+	position: relative;
+}
+
+button.middle {
+	border-radius: 0px;
+	margin-right: -1px;
+	position: relative;
+}
+
+button.right {
+	border-radius: 0px 7px 7px 0px;
+	position: relative;
+}
+
+button:focus {
+	outline: none;
+	border-color: black;
+	z-index: 1;
+}
+
+button.dragOver {
+	box-shadow: 0px 1px 1px rgba(0,0,0,0.25),
+		inset 0px 0px 9px 2px rgba(0,0,0,0.75);
+}
+
+button:active, button.checked {
+	color: white;
+	background-image: linear-gradient(to bottom, blue, royalblue);
+	border-color: #00c;
+	z-index: 1;
+}
+
+input[type=text], input[type=number], input[type=password] {
+	vertical-align: middle;
+	border-radius: 3px;
+	border: 1px solid #ddd;
+	padding: 2px 4px;
+}
+
+button .selectedIcon {
+	display: none;
+}
+
+button.checked .selectedIcon, button:active .selectedIcon {
+	display: inline-block;
+}
+
+button .normalIcon {
+	display: inline-block;
+}
+
+button:active .normalIcon,
+button.checked .normalIcon {
+	display: none;
+}
+
+.loaded #tips {
+	display: none;
+}
+
+#tips {
+	pointer-events: none;
+	z-index: -1;
+	position: fixed;
+	right: 24px;
+	bottom: 8px;
+	color: #ccc;
+	font-size: 18px;
+}
+
+.snackBar.toolSelected button.closeButton {
+	opacity: 0;
+	pointer-events: none;
+}
+
+button.closeButton {
+	position: absolute;
+	top: -8px;
+	left: -10px;
+	width: 17px;
+	height: 17px;
+	border: 2px solid white;
+	border-radius: 50%;
+	color: transparent;
+	box-shadow: 0px 2px 3px rgba(0,0,0,0.35);
+	overflow: hidden;
+	background-color: black;
+	cursor: pointer;
+	transition: transform 0.2s cubic-bezier(0.42, 0, 0.55, 1.65),
+		box-shadow 0.2s cubic-bezier(0.42, 0, 0.55, 1.65),
+		opacity 0.2s cubic-bezier(0.42, 0, 0.55, 1.65);
+}
+
+button.closeButton::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: 0;
+	bottom: 0;
+	background: 50% 50% no-repeat url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMi41IiBkPSJNNSw1TDExLDExTTExLDVMNSwxMSIvPjwvc3ZnPg==");
+	background-size: contain;
+	transition: transform 0.2s cubic-bezier(0.42, 0, 0.55, 1.65);
+}
+
+button.closeButton:focus {
+	outline: none;
+}
+
+button.closeButton:active {
+	transform: scale(1.25) !important;
+	box-shadow: 0px 3px 4px rgba(0,0,0,0.3);
+}
+
+button.closeButton:hover {
+	transform: scale(1.75);
+	box-shadow: 0px 4px 5px rgba(0,0,0,0.25);
+}
+
+button.closeButton:active::before {
+	transform: rotate(90deg) !important;
+}
+
+button.closeButton:hover::before {
+	transform: rotate(90deg);
+}
