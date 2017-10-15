@@ -58,7 +58,8 @@ class ImageBoxApp {
     Pipeline pipeline = new Pipeline(createProcess);
     ImageDocument.load(blob, pipeline).then((ImageDocument doc) async {
       ImageDocumentView docView = new ImageDocumentView(viewTemplate, doc);
-      docView.appendTo(document.body);
+      Element insertionPoint = document.getElementById("insertionPoint")?.nextNode;
+      docView.appendTo(document.body, insertionPoint);
     });
   }
 

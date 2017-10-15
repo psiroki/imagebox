@@ -3,6 +3,7 @@ import "dart:typed_data";
 import "dart:math" as math;
 
 import "pixel.dart";
+import "mask.dart";
 
 typedef PipelineProcess PipelineProcessFactory(CanvasRenderingContext2D context, PixelData source);
 
@@ -56,7 +57,43 @@ class CropProcess extends PipelineProcess {
       isFilled = createFillTest(allowDelta(differenceDelta));
     else
       isFilled = createFillTest();
-    if (transparentCartoon) {}
+    if (transparentCartoon) {
+      Mask keepMask = new Mask(source);
+      ColorMatcher tester = (color) => color != refColor;
+      keepMask.selectAll(pixelTest: tester);
+      Mask savedMask = new Mask(source);
+      savedMask.addMask(keepMask);
+      for (PixelPosition point in keepMask.selectedPixels()) {
+        Mask blobMask = new Mask(source);
+        blobMask.fill(point.x, point.y, pixelTest: tester);
+        Set<int> palette = blobMask.selectedPixelValues().toSet();
+        int peakValue = 0;
+        int peakColor = 0;
+        for (int color in palette) {
+          int value = colorDistance(color, refColor);
+          if (value > peakValue) {
+            peakValue = value;
+            peakColor = color;
+          }
+        }
+        int backgroundColor = peakColor & 0xffffff;
+        blobMask.paint(transformer: (source) {
+          if (source == peakColor) return source;
+          int peakDistance = colorDistance(source, peakColor);
+          int refDistance = colorDistance(source, refColor);
+          return mix(backgroundColor, peakColor, refDistance/(peakDistance+refDistance));
+        });
+        keepMask.subtractMask(blobMask);
+      }
+      savedMask.invert();
+      savedMask.paint(color: 0);
+
+      pixels = source.data;
+      ref = pixels.sublist(0, 4);
+      refColorBuffer = pixels.buffer.asUint32List(0, 1);
+      refColor = refColorBuffer[0];
+      print("New refColor: $refColor");
+    }
     if (doCrop) {
       Uint8ClampedList cropRef = ref;
       int cropRefWidth = cropRef.length;

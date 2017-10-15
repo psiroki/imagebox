@@ -1,6 +1,13 @@
 import "dart:typed_data";
 import "dart:html";
 
+class PixelPosition {
+  PixelPosition(this.x, this.y);
+
+  final int x;
+  final int y;
+}
+
 abstract class PixelData {
   int get width;
   int get height;

@@ -26,11 +26,11 @@ class ImageDocumentView {
     _bindBarButton(".savePngButton", _savePng);
   }
 
-  void appendTo(Element parent) {
+  void appendTo(Element parent, [Node before]) {
     Element saveJpgButton = _ownBar.querySelector(".saveJpgButton");
     Element qualityOutput = _ownBar.querySelector(".jpgQualityNum");
     qualityOutput.style.lineHeight = "";
-    parent.append(view);
+    parent.insertBefore(view, before);
     if (saveJpgButton != null) {
       qualityOutput.style.lineHeight = "${saveJpgButton.offsetHeight}px";
     }
