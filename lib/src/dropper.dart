@@ -79,11 +79,8 @@ class Dropper {
   }
 
   List<DataTransferItem> listOfDataTransferItems(DataTransferItemList list) {
-    List<DataTransferItem> result = [];
-    if (list == null) return result;
-    final int length = list.length;
-    for (int i = 0; i < length; ++i) result.add(list[i]);
-    return result;
+    if (list == null) return [];
+    return new List<DataTransferItem>.generate(list.length, (i) => list[i]);
   }
 
   bool _isAnyAcceptable(DataTransfer dataTransfer) {

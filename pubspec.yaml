@@ -1,6 +1,7 @@
 name: imagebox
 dependencies:
   exifdart:
+  crc32:
   dart_to_js_script_rewriter:
 transformers:
 - $dart2js:

@@ -31,6 +31,12 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.14.0"
+  crc32:
+    description:
+      name: crc32
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.6"
   csslib:
     description:
       name: csslib

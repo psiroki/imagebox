@@ -3,9 +3,12 @@ import "dart:async";
 import "dart:typed_data";
 import "dart:math" as math;
 
+import "package:crc32/crc32.dart";
+
 import "exif.dart";
 import "pipeline.dart";
 import "pixel.dart";
+import "control.dart";
 
 class ImageDocumentView {
   ImageDocumentView(Element viewTemplate, this.doc) {
@@ -15,26 +18,86 @@ class ImageDocumentView {
     _view.querySelector(".closeButton").onClick.listen((_) {
       _view.remove();
     });
+    _ownBar = _view.querySelector(".snackBar");
+    Element qualityOutput = _ownBar.querySelector(".jpgQualityNum");
+    _jpgQualityInput = _ownBar.querySelector(".jpgQuality");
+    bindValues(_jpgQualityInput, qualityOutput, (String s) => s.padLeft(3, "\u2007"));
+    _bindBarButton(".saveJpgButton", _saveJpg);
+    _bindBarButton(".savePngButton", _savePng);
+  }
+
+  void appendTo(Element parent) {
+    Element saveJpgButton = _ownBar.querySelector(".saveJpgButton");
+    Element qualityOutput = _ownBar.querySelector(".jpgQualityNum");
+    qualityOutput.style.lineHeight = "";
+    parent.append(view);
+    if (saveJpgButton != null) {
+      qualityOutput.style.lineHeight = "${saveJpgButton.offsetHeight}px";
+    }
   }
 
   Element get view => _view;
 
+  void _bindBarButton(String selector, void clickHandler(MouseEvent event)) {
+    _ownBar.querySelectorAll(selector).forEach((Element e) {
+      e.onClick.listen(clickHandler);
+    });
+  }
+
+  void _saveJpg(MouseEvent event) {
+    double quality = double.parse(_jpgQualityInput.value) * 1e-2;
+    _handleSave("jpg", "image/jpeg", quality);
+  }
+
+  void _savePng(MouseEvent event) {
+    _handleSave("png", "image/png");
+  }
+
+  void _handleSave(String suffix, String type, [Object extra]) {
+    bool forceDataPopup = window.navigator.userAgent.contains(blobUnfriendlyUserAgentMatcher);
+    if (forceDataPopup) {
+      window.open(doc.backingCanvas.toDataUrl(type, extra), "_blank");
+    } else {
+      doc.backingCanvas.toBlob((blob) => _handleDownload(doc.filename, suffix, blob), type, extra);
+    }
+  }
+
+  void _handleDownload(String originalFilename, String suffix, Blob blob) {
+    FileReader reader = new FileReader();
+    reader.onLoad.listen((ProgressEvent event) {
+      String crc = CRC32.compute(reader.result).toRadixString(16).padLeft(8, '0');
+      originalFilename ??= "image";
+      int dot = originalFilename.lastIndexOf('.');
+      if (dot >= 0) originalFilename = originalFilename.substring(0, dot);
+      String filename = "${originalFilename}_${crc}.${suffix}";
+      String blobUrl = Url.createObjectUrlFromBlob(blob);
+      AnchorElement a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = filename;
+      a.click();
+      Url.revokeObjectUrl(blobUrl);
+    });
+    reader.readAsArrayBuffer(blob);
+  }
+
   final ImageDocument doc;
 
+  InputElement _jpgQualityInput;
   Element _canvasParent;
+  Element _ownBar;
   Element _view;
+
+  static final RegExp blobUnfriendlyUserAgentMatcher = new RegExp(r"\biPad\b|\biPhone\b|\biPod\b");
 }
 
 class ImageDocument {
   static Future<ImageDocument> load(Blob blob, Pipeline pipeline) async {
-    List<Future> futures = <Future<dynamic>>[
-      _loadImage(blob),
-      ExifInfo.fromBlob(blob)
-    ];
+    String filename = blob is File ? blob.name : null;
+    List<Future> futures = <Future<dynamic>>[_loadImage(blob), ExifInfo.fromBlob(blob)];
     List objects = await Future.wait(futures);
     ExifInfo info = objects[1];
     return new ImageDocument(objects[0] as ImageElement,
-        pipeline: pipeline, exifInfo: info);
+        pipeline: pipeline, exifInfo: info, filename: filename);
   }
 
   static Future<ImageElement> _loadImage(Blob blob) {
@@ -56,7 +119,7 @@ class ImageDocument {
   }
 
   ImageDocument(ImageElement image,
-      {Pipeline pipeline, ExifInfo exifInfo, CanvasElement backingCanvas}) {
+      {Pipeline pipeline, ExifInfo exifInfo, CanvasElement backingCanvas, this.filename}) {
     int o = exifInfo?.orientation ?? 0;
     bool flip = o != null && o > 4;
     _width = !flip ? image.naturalWidth : image.naturalHeight;
@@ -98,6 +161,8 @@ class ImageDocument {
   }
 
   CanvasElement get backingCanvas => _backingCanvas;
+
+  String filename;
 
   int _width;
   int _height;
