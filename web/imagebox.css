@@ -367,3 +367,28 @@ button.closeButton:active::before {
 button.closeButton:hover::before {
 	transform: rotate(90deg);
 }
+
+.loupe {
+	position: absolute;
+	margin-top: 16px;
+	margin-left: 16px;
+	z-index: 100;
+	max-width: 20vmin;
+	max-height: 20vmin;
+	width: 160px;
+	height: 160px;
+	box-shadow: 0px 0px 1px black, 0px 3px 7px rgba(0,0,0,0.125);
+	border-radius: 4px;
+	background-image: linear-gradient(to bottom, #fff, #eee);
+}
+
+.loupe canvas {
+	position: absolute;
+	left: 2px;
+	top: 2px;
+	max-width: calc(20vmin - 4px);
+	max-height: calc(20vmin - 4px);
+	width: 156px;
+	height: 156px;
+	border-radius: 2px;
+}

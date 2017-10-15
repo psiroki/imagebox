@@ -5,7 +5,7 @@ typedef void SelectionChangeCallback(Tool tool, bool selecting);
 typedef void EventHandler<T extends Event>(T event);
 
 class _ClassChange {
-  _ClassChange(target, className, value);
+  _ClassChange(this.target, this.className, this.value);
 
   void restore() => target.classes.toggle(className, value);
 

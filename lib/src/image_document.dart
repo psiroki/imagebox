@@ -13,6 +13,7 @@ import "pixel.dart";
 import "tool.dart";
 import "mask.dart";
 import "control.dart";
+import "loupe.dart";
 
 class _SelectionStackElement {
   Mask mask;
@@ -50,7 +51,8 @@ class ImageDocumentView {
     _bindBarButton(".savePngButton", _savePng);
     _tools = [new Tool("eraser", (Tool tool, bool doSelect) {
       Console console = window.console;
-      if(doSelect) {
+      if (doSelect) {
+        new Loupe(tool, doc.backingCanvas);
         List<SpanElement> axis = ["vertical", "horizontal"].map((String orientation) {
           SpanElement axis = new SpanElement();
           axis.classes.add("${orientation}Ants");
