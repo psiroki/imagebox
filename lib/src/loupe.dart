@@ -35,6 +35,7 @@ class Loupe {
     _outer.style.top = "${abs.y}px";
     double scale = sourceCanvas.width / sourceCanvas.offsetWidth;
     position *= scale;
+    _zoom.clearRect(0, 0, _zoomCanvas.width, _zoomCanvas.height);
     _zoom.imageSmoothingEnabled = false;
     _zoom.drawImageScaledFromSource(sourceCanvas,
       position.x - halfViewWidth + 1, position.y - halfViewHeight + 1,
@@ -67,6 +68,5 @@ class Loupe {
   CanvasElement _zoomCanvas;
 
   static Element get template => _template ??= document.querySelector(".loupe")..remove();
-
   static Element _template;
 }
