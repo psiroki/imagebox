@@ -57,8 +57,8 @@ class Loupe {
     double offsetY = sourceY.remainder(1.0);
     if (offsetX < 0) offsetX += 1.0;
     if (offsetY < 0) offsetY += 1.0;
-    offsetX = 1.0 - offsetX;
-    offsetY = 1.0 - offsetY;
+    offsetX = 1.5 - offsetX;
+    offsetY = 1.5 - offsetY;
     double scaleX = _zoomCanvas.width / sourceWidth;
     double scaleY = _zoomCanvas.height / sourceHeight;
     offsetX = (_zoomCanvas.width - offsetX * scaleX) * 0.5 + 1;
