@@ -15,21 +15,26 @@ class _ClassChange {
 }
 
 class Tool {
-  Tool(this.name, this.selectCallback);
+  Tool(this.name, this.handler, {this.transactional: true});
 
   final String name;
-  final SelectionChangeCallback selectCallback;
+  final ToolHandler handler;
+  final bool transactional;
 
   void select(bool selecting) {
-    if (selecting) return selectCallback(this, selecting);
+    if (selecting) return handler._selectionChange(this, selecting);
 
     try {
-      return selectCallback(this, selecting);
+      return handler._selectionChange(this, selecting);
     } finally {
       this.removeListeners();
       this.restoreClasses();
       this.removeAddedElements();
     }
+  }
+
+  void endTransaction(bool accept) {
+    handler._endTransaction(this, accept);
   }
 
   void toggle(Element target, String className, bool value) {
@@ -69,4 +74,38 @@ class Tool {
   List<StreamSubscription> _listeners = [];
   List<Node> _addedNodes = [];
   List<_ClassChange> _classChanges = [];
+}
+
+abstract class ToolHandler {
+  ToolHandler(String name, {bool transactional: true}) {
+    _tool = new Tool(name, this, transactional: transactional);
+  }
+
+  void select();
+
+  void deselect() {}
+
+  void commit() {}
+
+  void rollback() {}
+
+  void _selectionChange(Tool tool, bool selecting) {
+    if (!identical(tool, _tool)) throw new ArgumentError("Expected the same tool");
+    if (selecting)
+      select();
+    else
+      deselect();
+  }
+
+  void _endTransaction(Tool tool, bool accept) {
+    if (!identical(tool, _tool)) throw new ArgumentError("Expected the same tool");
+    if (accept)
+      commit();
+    else
+      rollback();
+  }
+
+  Tool get tool => _tool;
+
+  Tool _tool;
 }

@@ -37,25 +37,44 @@ class Loupe {
     position *= scale;
     _zoom.clearRect(0, 0, _zoomCanvas.width, _zoomCanvas.height);
     _zoom.imageSmoothingEnabled = false;
-    _zoom.drawImageScaledFromSource(sourceCanvas,
-      position.x - halfViewWidth + 1, position.y - halfViewHeight + 1,
-      2 * halfViewWidth - 1, 2 * halfViewHeight - 1,
-      0, 0, _zoomCanvas.width, _zoomCanvas.height);
+    double sourceX = position.x - halfViewWidth + 1;
+    double sourceY = position.y - halfViewHeight + 1;
+    double sourceWidth = 2 * halfViewWidth - 1;
+    double sourceHeight = 2 * halfViewHeight - 1;
+    _zoom.drawImageScaledFromSource(sourceCanvas, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0,
+        _zoomCanvas.width, _zoomCanvas.height);
     _zoom.imageSmoothingEnabled = true;
-    _drawCrosshair();
+    _drawCrosshair(sourceX, sourceY, sourceWidth, sourceHeight);
     _zoom.save();
     _zoom.strokeStyle = "white";
     _zoom.translate(-1, -1);
-    _drawCrosshair();
+    _drawCrosshair(sourceX, sourceY, sourceWidth, sourceHeight);
     _zoom.restore();
   }
 
-  void _drawCrosshair() {
+  void _drawCrosshair(double sourceX, double sourceY, double sourceWidth, double sourceHeight) {
+    double offsetX = sourceX.remainder(1.0);
+    double offsetY = sourceY.remainder(1.0);
+    if (offsetX < 0) offsetX += 1.0;
+    if (offsetY < 0) offsetY += 1.0;
+    offsetX = 1.0 - offsetX;
+    offsetY = 1.0 - offsetY;
+    double scaleX = _zoomCanvas.width / sourceWidth;
+    double scaleY = _zoomCanvas.height / sourceHeight;
+    offsetX = (_zoomCanvas.width - offsetX * scaleX) * 0.5 + 1;
+    offsetY = (_zoomCanvas.height - offsetY * scaleY) * 0.5 + 1;
+
     _zoom.beginPath();
     _zoom.moveTo(_zoomCanvas.width * 0.5, 0);
+    _zoom.lineTo(_zoomCanvas.width * 0.5, offsetY);
+    _zoom.moveTo(_zoomCanvas.width * 0.5, offsetY + scaleY);
     _zoom.lineTo(_zoomCanvas.width * 0.5, _zoomCanvas.height + 1);
     _zoom.moveTo(0, _zoomCanvas.height * 0.5);
+    _zoom.lineTo(offsetX, _zoomCanvas.height * 0.5);
+    _zoom.moveTo(offsetX + scaleX, _zoomCanvas.height * 0.5);
     _zoom.lineTo(_zoomCanvas.width + 1, _zoomCanvas.height * 0.5);
+
+    _zoom.rect(offsetX, offsetY, scaleX, scaleY);
     _zoom.stroke();
   }
 

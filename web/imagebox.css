@@ -119,6 +119,19 @@ body {
 	width: 1px;
 }
 
+.selectionFrame {
+	pointer-events: none;
+	position: absolute;
+	z-index: 1;
+	box-sizing: border-box;
+	background: linear-gradient(to right, #888, #888 50%, rgba(136, 136, 136, 0) 50%, rgba(136, 136, 136, 0)) 0px 0% repeat-x,
+		linear-gradient(to left, #888, #888 50%, rgba(136, 136, 136, 0) 50%, rgba(136, 136, 136, 0)) 0px 100% repeat-x,
+		linear-gradient(to top, #888, #888 50%, rgba(136, 136, 136, 0) 50%, rgba(136, 136, 136, 0)) 0% 0px repeat-y,
+		linear-gradient(to bottom, #888, #888 50%, rgba(136, 136, 136, 0) 50%, rgba(136, 136, 136, 0)) 100% 0px repeat-y;
+  background-size: 16px 1px, 16px 1px, 1px 16px, 1px 16px;
+	animation: march 1s infinite linear;
+}
+
 .card .canvasHolder .canvasFrame {
 	pointer-events: none;
 	position: absolute;

@@ -5,35 +5,15 @@ import "dart:math" as math;
 
 import "package:crc32/crc32.dart";
 
-import "../imagebox.dart";
+import "tools/eraser.dart";
+import "tools/manual_crop.dart";
+import "app.dart";
 
 import "exif.dart";
 import "pipeline.dart";
 import "pixel.dart";
 import "tool.dart";
-import "mask.dart";
 import "control.dart";
-import "loupe.dart";
-
-class _SelectionStackElement {
-  Mask mask;
-  CanvasElement highlight;
-  int refColor;
-  Tool tool;
-
-  void removeHighlight() {
-    if (highlight == null) return;
-    highlight.remove();
-    tool.elementRemoved(highlight);
-  }
-
-  void execute(ImageDocument doc) {
-    mask.imageData = new PixelData.fromCanvas(doc.backingCanvas);
-    mask.paint(color: refColor);
-    mask.imageData.setCanvasContents(doc.backingCanvas);
-    removeHighlight();
-  }
-}
 
 class ImageDocumentView {
   ImageDocumentView(this.app, Element viewTemplate, this.doc) {
@@ -49,95 +29,17 @@ class ImageDocumentView {
     bindValues(_jpgQualityInput, qualityOutput, (String s) => s.padLeft(3, "\u2007"));
     _bindBarButton(".saveJpgButton", _saveJpg);
     _bindBarButton(".savePngButton", _savePng);
-    _tools = [new Tool("eraser", (Tool tool, bool doSelect) {
-      Console console = window.console;
-      if (doSelect) {
-        new Loupe(tool, doc.backingCanvas);
-        List<SpanElement> axis = ["vertical", "horizontal"].map((String orientation) {
-          SpanElement axis = new SpanElement();
-          axis.classes.add("${orientation}Ants");
-          axis.classes.add("${orientation}Axis");
-          axis.classes.add("hideCursor");
-          return axis;
-        }).toList();
-
-        axis.forEach((a) {
-          _canvasParent.append(a);
-          tool.addElement(a);
-        });
-
-        CanvasElement canvas = doc.backingCanvas;
-        tool.addListener(canvas.onMouseMove, (MouseEvent event) {
-          num x = event.offset.x;
-          num y = event.offset.y;
-          axis[0].style.left = "${x}px";
-          axis[1].style.top = "${y}px";
-          if (x < 0 || x >= canvas.offsetWidth || y < 0 || y >= canvas.offsetHeight) {
-            axis[0].style.display = "none";
-            axis[1].style.display = "none";
-          } else {
-            axis[0].style.display = "";
-            axis[1].style.display = "";
-          }
-        });
-        canvas.tabIndex = 0;
-        List<_SelectionStackElement> selectionStack = [];
-
-        tool.addListener(canvas.onKeyDown, (KeyboardEvent event) {
-          if (event.which == 13) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (selectionStack.isNotEmpty) selectionStack.removeLast().execute(doc);
-          } else if (event.which == 8 || event.which == 46) {
-            event.preventDefault();
-            event.stopPropagation();
-            if (selectionStack.isNotEmpty) selectionStack.removeLast().removeHighlight();
-          }
-        });
-        tool.addListener(canvas.onClick, (MouseEvent event) {
-          canvas.focus();
-          num x = event.offset.x;
-          num y = event.offset.y;
-          _SelectionStackElement current;
-          if (selectionStack.isNotEmpty) {
-            current = selectionStack.first;
-          } else {
-            Mask mask = new Mask(new PixelData.fromCanvas(doc.backingCanvas));
-            current = new _SelectionStackElement()
-              ..mask = mask
-              ..highlight = null
-              ..refColor = mask.referenceColor
-              ..tool = tool;
-            selectionStack.add(current);
-          }
-
-          int refColor = current.refColor;
-
-          console.log("Testing for color: ${refColor.toRadixString(16).padLeft(8, '0')}");
-          current.mask.fill(x, y, pixelTest: (pixel) => pixel != refColor);
-
-          current.removeHighlight();
-
-          CanvasElement fillHighlight = current.mask.createHighlightElement("highlightCanvas");
-          _canvasParent.append(fillHighlight);
-          tool.addElement(fillHighlight);
-          current.highlight = fillHighlight;
-        });
-        tool.toggle(canvas, "hideCursor", true);
-        tool.toggle(_canvasParent, "hideCursor", true);
-      } else {
-        // everything's removed automatically
-        doc.backingCanvas.tabIndex = -1;
-      }
-    })];
+    _tools = [
+      new Eraser(app, doc, _canvasParent).tool,
+      new ManualCrop(app, doc, _canvasParent).tool,
+    ];
     _tools.forEach((Tool t) {
       _bindBarButton(t.buttonSelector, (_) {
-        if(_tool == t) {
+        if (_tool == t) {
           _tool.select(false);
           _tool = null;
         } else {
-          if (_tool != null)
-            _tool.select(false);
+          if (_tool != null) _tool.select(false);
           _tool = t;
           _tool.select(true);
         }
@@ -231,8 +133,8 @@ class ImageDocument {
     List<Future> futures = <Future<dynamic>>[_loadImage(blob), ExifInfo.fromBlob(blob)];
     List objects = await Future.wait(futures);
     ExifInfo info = objects[1];
-    return new ImageDocument(image: objects[0] as ImageElement,
-        pipeline: pipeline, exifInfo: info, filename: filename);
+    return new ImageDocument(
+        image: objects[0] as ImageElement, pipeline: pipeline, exifInfo: info, filename: filename);
   }
 
   static Future<ImageElement> _loadImage(Blob blob) {
@@ -253,8 +155,13 @@ class ImageDocument {
     return completer.future;
   }
 
-  ImageDocument({ImageElement image, PixelData pixels,
-      Pipeline pipeline, ExifInfo exifInfo, CanvasElement backingCanvas, this.filename}) {
+  ImageDocument(
+      {ImageElement image,
+      PixelData pixels,
+      Pipeline pipeline,
+      ExifInfo exifInfo,
+      CanvasElement backingCanvas,
+      this.filename}) {
     if (image != null) {
       int o = exifInfo?.orientation ?? 0;
       bool flip = o > 4;
