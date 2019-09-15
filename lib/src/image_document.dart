@@ -3,7 +3,7 @@ import "dart:async";
 import "dart:typed_data";
 import "dart:math" as math;
 
-import "package:crc32/crc32.dart";
+import "util/crc32.dart";
 
 import "tools/eraser.dart";
 import "tools/manual_crop.dart";
@@ -59,6 +59,10 @@ class ImageDocumentView {
     if (saveJpgButton != null) {
       qualityOutput.style.lineHeight = "${saveJpgButton.offsetHeight}px";
     }
+    if (window.devicePixelRatio > 1 && doc.backingCanvas.offsetWidth > window.screen.width) {
+      doc.backingCanvas.style.width = "${doc.backingCanvas.width / window.devicePixelRatio}px";
+      doc.backingCanvas.style.height = "auto";
+    }
   }
 
   void _syncTool() {
@@ -90,14 +94,14 @@ class ImageDocumentView {
     if (forceDataPopup) {
       window.open(doc.backingCanvas.toDataUrl(type, extra), "_blank");
     } else {
-      doc.backingCanvas.toBlob((blob) => _handleDownload(doc.filename, suffix, blob), type, extra);
+      doc.backingCanvas.toBlob(type, extra).then((blob) => _handleDownload(doc.filename, suffix, blob));
     }
   }
 
   void _handleDownload(String originalFilename, String suffix, Blob blob) {
     FileReader reader = new FileReader();
     reader.onLoad.listen((ProgressEvent event) {
-      String crc = CRC32.compute(reader.result).toRadixString(16).padLeft(8, '0');
+      String crc = Crc32.compute(reader.result).toRadixString(16).padLeft(8, '0');
       originalFilename ??= "image";
       int dot = originalFilename.lastIndexOf('.');
       if (dot >= 0) originalFilename = originalFilename.substring(0, dot);

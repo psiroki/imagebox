@@ -1,5 +1,5 @@
 import "dart:async";
-import "package:exifdart/exifdart.dart" as exif;
+import "package:exifdart/exifdart_html.dart" as exif;
 import "dart:html";
 
 class ExifInfo {

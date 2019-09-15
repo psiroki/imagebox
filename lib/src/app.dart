@@ -64,7 +64,7 @@ class ImageBoxApp {
 
   void handleImageDocument(ImageDocument doc) {
     ImageDocumentView docView = new ImageDocumentView(this, viewTemplate, doc);
-    Element insertionPoint = document.getElementById("insertionPoint")?.nextNode;
+    Node insertionPoint = document.getElementById("insertionPoint")?.nextNode;
     docView.appendTo(document.body, insertionPoint);
   }
 

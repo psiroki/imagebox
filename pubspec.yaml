@@ -1,10 +1,13 @@
 name: imagebox
+
+environment:
+  sdk: '>=2.0.0 <3.0.0'
+
 dependencies:
   exifdart:
-  crc32:
-  dart_to_js_script_rewriter:
-transformers:
-- $dart2js:
-    minify: true
-    csp: true
-- dart_to_js_script_rewriter
+
+dev_dependencies:
+  build_runner: ^1.6.0
+  build_web_compilers: ^2.3.0
+  build_daemon: '>=1.0.0 <2.0.0'
+  pedantic: ^1.8.0
