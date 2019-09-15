@@ -6,6 +6,10 @@ html, body {
 	font-family: 'San Francisco', 'Helvetica Neue', Tahoma, sans-serif;
 }
 
+body {
+	padding: 0px 12px;
+}
+
 #insertionPoint {
 	height: 56px;
 }
@@ -35,13 +39,42 @@ html, body {
 	line-height: 20px;
 }
 
+@media (max-width: 1000px) {
+	html, body {
+		margin: 0;
+		padding: 0;
+	}
+	.settingsPanel {
+		position: static;
+		height: auto;
+		font-size: 12pt;
+		overflow-x: auto;
+	}
+	.settingsPanel .client {
+		padding-top: 8px;
+		line-height: 40px;
+	}
+	.settingsPanel label {
+		display: inline-block;
+	}
+}
+
+@media (max-width: 640px) {
+	#tips {
+		font-size: 14px;
+		padding-left: 8px;
+	}
+}
+
+@media (max-width: 480px) {
+	.combinedValuePanel > .rangeBlock > input {
+		width: calc(100vw - 16px) !important;
+	}
+}
+
 input[type=number] {
 	width: 36px;
 	text-align: right;
-}
-
-body {
-	padding: 0px 12px;
 }
 
 .view .card {
@@ -184,18 +217,20 @@ body {
 .snackBar {
 	overflow: hidden;
 	clear: both;
-	padding: 5px 0;
+	padding: 4px 0 0;
+	margin-bottom: -4px;
 }
 
 .snackBar > * {
-	float: left;
+	display: inline-block;
 	margin-right: 4px;
+	margin-bottom: 4px;
+	vertical-align: middle;
 }
 
 .snackBar > .section {
 	border: 1px solid #ddd;
 	border-radius: 3px;
-	margin: -5px 0;
 	padding: 4px 6px;
 	box-shadow: inset 0px 1px 3px rgba(0,0,0,0.05);
 }
